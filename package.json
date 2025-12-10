@@ -1,0 +1,75 @@
+{
+  "name": "code-review",
+  "displayName": "Git Code Reviewer",
+  "description": "Review local git changes using GitHub Copilot",
+  "version": "0.0.1",
+  "engines": {
+    "vscode": "^1.106.1"
+  },
+  "categories": [
+    "Other"
+  ],
+  "activationEvents": [],
+  "main": "./dist/extension.js",
+  "contributes": {
+    "commands": [
+      {
+        "command": "code-review.reviewGitChanges",
+        "title": "Review Git Changes with Copilot"
+      }
+    ],
+    "chatParticipants": [
+      {
+        "id": "code-review.code-reviewer",
+        "name": "code-reviewer",
+        "description": "AI-powered code reviewer for your git changes",
+        "isSticky": true,
+        "commands": [
+          {
+            "name": "review",
+            "description": "Review all local git changes (staged and unstaged)"
+          }
+        ]
+      }
+    ],
+    "menus": {
+      "scm/title": [
+        {
+          "command": "code-review.reviewGitChanges",
+          "group": "navigation",
+          "when": "scmProvider == git"
+        }
+      ],
+      "commandPalette": [
+        {
+          "command": "code-review.reviewGitChanges",
+          "when": "workspaceFolderCount != 0"
+        }
+      ]
+    }
+  },
+  "scripts": {
+    "vscode:prepublish": "yarn run package",
+    "compile": "webpack",
+    "watch": "webpack --watch",
+    "package": "webpack --mode production --devtool hidden-source-map",
+    "compile-tests": "tsc -p . --outDir out",
+    "watch-tests": "tsc -p . -w --outDir out",
+    "pretest": "yarn run compile-tests && yarn run compile && yarn run lint",
+    "lint": "eslint src",
+    "test": "vscode-test"
+  },
+  "devDependencies": {
+    "@types/vscode": "^1.106.1",
+    "@types/mocha": "^10.0.10",
+    "@types/node": "22.x",
+    "typescript-eslint": "^8.48.1",
+    "eslint": "^9.39.1",
+    "typescript": "^5.9.3",
+    "ts-loader": "^9.5.4",
+    "webpack": "^5.103.0",
+    "webpack-cli": "^6.0.1",
+    "@vscode/test-cli": "^0.0.12",
+    "@vscode/test-electron": "^2.5.2"
+  }
+}
