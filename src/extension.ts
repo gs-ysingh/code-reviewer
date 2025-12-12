@@ -333,18 +333,44 @@ async function getBranches(workspaceRoot: string): Promise<string[]> {
 }
 
 async function getBranchDiff(workspaceRoot: string, targetBranch: string, baseBranch: string): Promise<string> {
+	// Helper function to resolve branch name (check local, then remote)
+	const resolveBranch = async (branch: string): Promise<string> => {
+		try {
+			// Try as-is first
+			await execAsync(`git rev-parse --verify ${branch}`, { cwd: workspaceRoot });
+			return branch;
+		} catch {
+			// Try with origin/ prefix if not already there
+			if (!branch.startsWith('origin/')) {
+				try {
+					await execAsync(`git rev-parse --verify origin/${branch}`, { cwd: workspaceRoot });
+					return `origin/${branch}`;
+				} catch {
+					// Branch doesn't exist locally or remotely
+					throw new Error(`Branch '${branch}' not found`);
+				}
+			}
+			throw new Error(`Branch '${branch}' not found`);
+		}
+	};
+
 	try {
-		const { stdout } = await execAsync(`git diff ${baseBranch}...${targetBranch}`, {
+		// Resolve both branches
+		const resolvedTarget = await resolveBranch(targetBranch);
+		const resolvedBase = await resolveBranch(baseBranch);
+		
+		// Get the diff between branches
+		const { stdout } = await execAsync(`git diff ${resolvedBase}...${resolvedTarget}`, {
 			cwd: workspaceRoot,
 			maxBuffer: 1024 * 1024 * 10 // 10MB buffer
 		});
 
 		return stdout;
 	} catch (error) {
-		if (error instanceof Error && 'code' in error && error.code === 128) {
-			throw new Error(`Invalid branch names or branches don't exist`);
+		if (error instanceof Error) {
+			throw error;
 		}
-		throw error;
+		throw new Error(`Unable to compare branches '${targetBranch}' and '${baseBranch}'`);
 	}
 }
 
