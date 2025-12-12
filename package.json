@@ -16,6 +16,10 @@
       {
         "command": "code-review.reviewGitChanges",
         "title": "Review Git Changes with Copilot"
+      },
+      {
+        "command": "code-review.reviewGitBranch",
+        "title": "Review Git Branch with Copilot"
       }
     ],
     "chatParticipants": [
@@ -28,6 +32,10 @@
           {
             "name": "review",
             "description": "Review all local git changes (staged and unstaged)"
+          },
+          {
+            "name": "reviewBranch",
+            "description": "Review all changes in a git branch compared to another branch"
           }
         ]
       }
@@ -43,6 +51,10 @@
       "commandPalette": [
         {
           "command": "code-review.reviewGitChanges",
+          "when": "workspaceFolderCount != 0"
+        },
+        {
+          "command": "code-review.reviewGitBranch",
           "when": "workspaceFolderCount != 0"
         }
       ]
