@@ -3,7 +3,7 @@
   "displayName": "Git Code Reviewer",
   "description": "Review local git changes using GitHub Copilot",
   "icon": "media/icon.png",
-  "version": "0.0.2",
+  "version": "0.0.3",
   "publisher": "CodeReviewer87",
   "license": "MIT",
   "repository": {
