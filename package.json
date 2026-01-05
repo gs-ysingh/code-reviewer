@@ -2,6 +2,7 @@
   "name": "copilot-git-code-review",
   "displayName": "Git Code Reviewer",
   "description": "Review local git changes using GitHub Copilot",
+  "icon": "media/icon.png",
   "version": "0.0.2",
   "publisher": "CodeReviewer87",
   "license": "MIT",

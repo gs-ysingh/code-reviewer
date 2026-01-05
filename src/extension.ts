@@ -3,6 +3,7 @@
 import * as vscode from 'vscode';
 import { exec } from 'child_process';
 import * as util from 'util';
+import { buildDiffReviewPromptWithinBudget } from './promptBudget';
 
 const execAsync = util.promisify(exec);
 
@@ -135,25 +136,27 @@ async function handleReviewCommand(request: vscode.ChatRequest, context: vscode.
 
 	stream.progress('Analyzing changes with AI...');
 
-	// Craft the prompt for code review
-	const prompt = `You are an expert code reviewer. Please review the following git changes and provide:
+	const instruction = `You are an expert code reviewer. Please review the following git changes and provide:
 
 1. **Summary**: A brief overview of what changed
 2. **Potential Issues**: Any bugs, security concerns, or code quality problems
 3. **Best Practices**: Suggestions for improvements following best practices
 4. **Positive Feedback**: What was done well
 
-Here are the git changes:
-
-\`\`\`diff
-${gitChanges}
-\`\`\`
-
 Please provide a thorough but concise code review.`;
 
-	const messages = [
-		vscode.LanguageModelChatMessage.User(prompt)
-	];
+	const { prompt, wasTruncated } = await buildDiffReviewPromptWithinBudget({
+		model: request.model,
+		instruction,
+		diff: gitChanges,
+		token,
+	});
+
+	if (wasTruncated) {
+		stream.markdown('ℹ️ The git diff was too large for the model token limit, so an excerpt was sent. If you want a deeper review, try reviewing a smaller set of changes.\n\n');
+	}
+
+	const messages = [vscode.LanguageModelChatMessage.User(prompt)];
 
 	try {
 		const chatResponse = await request.model.sendRequest(messages, {}, token);
@@ -274,25 +277,27 @@ async function handleReviewBranchCommand(request: vscode.ChatRequest, context: v
 
 	stream.progress('Analyzing branch changes with AI...');
 
-	// Craft the prompt for code review
-	const prompt = `You are an expert code reviewer. Please review the following git changes from branch "${targetBranch}" compared to "${baseBranch}" and provide:
+	const instruction = `You are an expert code reviewer. Please review the following git changes from branch "${targetBranch}" compared to "${baseBranch}" and provide:
 
 1. **Summary**: A brief overview of what changed
 2. **Potential Issues**: Any bugs, security concerns, or code quality problems
 3. **Best Practices**: Suggestions for improvements following best practices
 4. **Positive Feedback**: What was done well
 
-Here are the git changes:
-
-\`\`\`diff
-${branchDiff}
-\`\`\`
-
 Please provide a thorough but concise code review.`;
 
-	const messages = [
-		vscode.LanguageModelChatMessage.User(prompt)
-	];
+	const { prompt, wasTruncated } = await buildDiffReviewPromptWithinBudget({
+		model: request.model,
+		instruction,
+		diff: branchDiff,
+		token,
+	});
+
+	if (wasTruncated) {
+		stream.markdown('ℹ️ The branch diff was too large for the model token limit, so an excerpt was sent. If you want a deeper review, try reviewing a smaller set of changes.\n\n');
+	}
+
+	const messages = [vscode.LanguageModelChatMessage.User(prompt)];
 
 	try {
 		const chatResponse = await request.model.sendRequest(messages, {}, token);
